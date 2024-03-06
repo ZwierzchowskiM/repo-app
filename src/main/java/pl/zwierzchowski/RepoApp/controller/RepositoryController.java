@@ -7,8 +7,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pl.zwierzchowski.RepoApp.domain.Repository;
+import pl.zwierzchowski.RepoApp.domain.dto.RepositoryDTO;
 import pl.zwierzchowski.RepoApp.service.GithubService;
 import reactor.core.publisher.Flux;
+
+import java.util.Set;
 
 
 @RestController
@@ -22,9 +25,9 @@ public class RepositoryController {
     }
 
     @GetMapping(value = "/", headers = "Accept=application/json")
-    public ResponseEntity<Flux<Repository>> getUserRepositories(@RequestParam String username) {
+    public ResponseEntity<Set<RepositoryDTO>> getUserRepositories(@RequestParam String username) {
 
-        Flux<Repository> allRepositories = gitHubService.getAllRepositories(username);
+        Set<RepositoryDTO> allRepositories = gitHubService.getRepositoriesDetails(username);
 
         return ResponseEntity.ok(allRepositories);
     }
