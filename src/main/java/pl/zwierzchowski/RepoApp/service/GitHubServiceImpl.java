@@ -1,5 +1,6 @@
 package pl.zwierzchowski.RepoApp.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -10,7 +11,10 @@ import reactor.core.publisher.Mono;
 @Service
 public class GitHubServiceImpl implements GithubService {
 
-    private final String gitHubReposApiUrl = "https://api.github.com/users/ZwierzchowskiM/repos";
+    @Value("${github.repos.api.url:https://api.github.com/users/{username}/repos}")
+    private String gitHubReposApiUrl;
+    @Value("${github.branches.api.url:https://api.github.com/repos/{username}/{reponame}/branches}")
+    private String gitHubBranchesApiUrl;
 
     WebClient webClient;
 
@@ -29,12 +33,6 @@ public class GitHubServiceImpl implements GithubService {
                 .bodyToFlux(Repository.class)
                 .onErrorResume(Exception.class, e -> Flux.empty()); // Return an empty collection on error
     }
-
-//    private Mono<? extends Throwable> handleErrorResponse(HttpStatusCode statusCode) {
-//
-//        // Handle non-success status codes here (e.g., logging or custom error handling)
-//        return Mono.error(new RuntimeException("Failed to fetch employee. Status code: " + statusCode));
-//    }
 
     private Mono<? extends Throwable> handleResponse(HttpStatusCode statusCode) {
 
