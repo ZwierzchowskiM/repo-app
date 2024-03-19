@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pl.zwierzchowski.RepoApp.domain.dto.BranchDTO;
+import pl.zwierzchowski.RepoApp.domain.dto.CommitDTO;
 import pl.zwierzchowski.RepoApp.domain.dto.RepositoryDTO;
 import pl.zwierzchowski.RepoApp.service.GithubService;
 
@@ -37,6 +38,14 @@ public class GitHubController {
         Set<BranchDTO> repositoryBranches = gitHubService.getRepositoryBranchesDetails(username, repositoryName);
 
         return ResponseEntity.ok(repositoryBranches);
+    }
+
+    @GetMapping(value = "/commits", headers = "Accept=application/json")
+    public ResponseEntity<Set<CommitDTO>> getRepositoryCommits(@RequestParam String username, @RequestParam String repositoryName) {
+
+        Set<CommitDTO> repositoryCommits = gitHubService.getRepositoryCommitDetails(username, repositoryName);
+
+        return ResponseEntity.ok(repositoryCommits);
     }
 
 

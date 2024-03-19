@@ -8,11 +8,11 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Branch {
+public class CommitResponse {
 
-    private String name;
-    private CommitResponse commitResponse;
-    @JsonProperty("protected")
-    private boolean branchProtected;
 
+    private String sha;
+    @JsonProperty("node_id")
+    private String nodeId;
+//    private String message;
 }

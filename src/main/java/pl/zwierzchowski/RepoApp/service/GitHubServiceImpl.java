@@ -5,8 +5,10 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import pl.zwierzchowski.RepoApp.domain.Branch;
+import pl.zwierzchowski.RepoApp.domain.CommitResponse;
 import pl.zwierzchowski.RepoApp.domain.Repository;
 import pl.zwierzchowski.RepoApp.domain.dto.BranchDTO;
+import pl.zwierzchowski.RepoApp.domain.dto.CommitDTO;
 import pl.zwierzchowski.RepoApp.domain.dto.RepositoryDTO;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -21,6 +23,10 @@ public class GitHubServiceImpl implements GithubService {
     private String gitHubReposApiUrl;
     @Value("${github.branches.api.url:https://api.github.com/repos/{username}/{reponame}/branches}")
     private String gitHubBranchesApiUrl;
+    @Value("${github.commits.api.url:https://api.github.com/repos/{username}/{reponame}/commits}")
+    private String gitHubCommitsApiUrl;
+
+    String test = "https://api.github.com/repos/ZwierzchowskiM/repo-app/commits";
 
     WebClient webClient;
 
@@ -40,18 +46,6 @@ public class GitHubServiceImpl implements GithubService {
         return repositoryDTOS;
     }
 
-    public Set<BranchDTO> getRepositoryBranchesDetails(String username,String repositoryName) {
-
-        Flux<Branch> branches = getRepositoryBranches(username, repositoryName);
-
-        Set<BranchDTO> branchDTOS =
-                branches
-                        .map(branch -> new BranchDTO(branch.getName()))
-                        .collect(Collectors.toSet()).block();
-
-        return branchDTOS;
-    }
-
     public Flux<Repository> getAllRepositories(String username) {
 
         Flux<Repository> repositories = webClient.get()
@@ -65,6 +59,19 @@ public class GitHubServiceImpl implements GithubService {
         return repositories;
     }
 
+    public Set<BranchDTO> getRepositoryBranchesDetails(String username,String repositoryName) {
+
+        Flux<Branch> branches = getRepositoryBranches(username, repositoryName);
+
+        Set<BranchDTO> branchDTOS =
+                branches
+                        .map(branch -> new BranchDTO(branch.getName()))
+                        .collect(Collectors.toSet()).block();
+
+        return branchDTOS;
+    }
+
+
     public Flux<Branch> getRepositoryBranches(String username,String repositoryName) {
 
         Flux<Branch> branches = webClient.get()
@@ -76,6 +83,31 @@ public class GitHubServiceImpl implements GithubService {
                 .onErrorResume(Exception.class, e -> Flux.empty());
 
         return branches;
+    }
+
+    public Set<CommitDTO> getRepositoryCommitDetails(String username, String repositoryName) {
+
+        Flux<CommitResponse> commits = getRepositoryCommits(username, repositoryName);
+
+        Set<CommitDTO> commitDTOS =
+                commits
+                        .map(commitResponse -> new CommitDTO(commitResponse.getSha(), commitResponse.getNodeId()))
+                        .collect(Collectors.toSet()).block();
+
+        return commitDTOS;
+    }
+    public Flux<CommitResponse> getRepositoryCommits(String username, String repositoryName) {
+
+        Flux<CommitResponse> commits = webClient.get()
+                .uri(gitHubCommitsApiUrl,username,repositoryName)
+//                .uri(test)
+                .retrieve()
+                .onStatus(httpStatus -> !httpStatus.is2xxSuccessful(),
+                        clientResponse -> handleResponse(clientResponse.statusCode()))
+                .bodyToFlux(CommitResponse.class)
+                .onErrorResume(Exception.class, e -> Flux.empty());
+
+        return commits;
     }
 
     private Mono<? extends Throwable> handleResponse(HttpStatusCode statusCode) {
