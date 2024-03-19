@@ -28,8 +28,7 @@ public class GitHubServiceImpl implements GithubService {
         this.webClient = webClient;
     }
 
-
-    public Set<RepositoryDTO> getRepositoriesDetails(String username) {
+    public Set<RepositoryDTO> getRepositories(String username) {
 
         Flux<Repository> repositories = getAllRepositories(username);
 
@@ -39,7 +38,18 @@ public class GitHubServiceImpl implements GithubService {
                         .collect(Collectors.toSet()).block();
 
         return repositoryDTOS;
+    }
 
+    public Set<BranchDTO> getRepositoryBranchesDetails(String username,String repositoryName) {
+
+        Flux<Branch> branches = getRepositoryBranches(username, repositoryName);
+
+        Set<BranchDTO> branchDTOS =
+                branches
+                        .map(branch -> new BranchDTO(branch.getName()))
+                        .collect(Collectors.toSet()).block();
+
+        return branchDTOS;
     }
 
     public Flux<Repository> getAllRepositories(String username) {
@@ -52,9 +62,20 @@ public class GitHubServiceImpl implements GithubService {
                 .bodyToFlux(Repository.class)
                 .onErrorResume(Exception.class, e -> Flux.empty());
 
-
         return repositories;
+    }
 
+    public Flux<Branch> getRepositoryBranches(String username,String repositoryName) {
+
+        Flux<Branch> branches = webClient.get()
+                .uri(gitHubBranchesApiUrl,username,repositoryName)
+                .retrieve()
+                .onStatus(httpStatus -> !httpStatus.is2xxSuccessful(),
+                        clientResponse -> handleResponse(clientResponse.statusCode()))
+                .bodyToFlux(Branch.class)
+                .onErrorResume(Exception.class, e -> Flux.empty());
+
+        return branches;
     }
 
     private Mono<? extends Throwable> handleResponse(HttpStatusCode statusCode) {
@@ -62,13 +83,10 @@ public class GitHubServiceImpl implements GithubService {
         if (statusCode.is2xxSuccessful()) {
             return null;
         } else if (statusCode.is4xxClientError()) {
-            // Handle client errors (e.g., 404 Not Found)
             return Mono.error(new RuntimeException("Employee not found"));
         } else if (statusCode.is5xxServerError()) {
-            // Handle server errors (e.g., 500 Internal Server Error)
             return Mono.error(new RuntimeException("Server error"));
         } else {
-            // Handle other status codes as needed
             return Mono.error(new RuntimeException("Unexpected error"));
         }
     }
