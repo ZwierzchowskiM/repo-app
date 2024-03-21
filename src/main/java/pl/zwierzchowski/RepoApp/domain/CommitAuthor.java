@@ -1,17 +1,17 @@
 package pl.zwierzchowski.RepoApp.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Commit {
+public class CommitAuthor {
 
-        private String url;
-        private CommitAuthor author;
-        private String message;
+    private String name;
+    private String email;
+    private String date;
 
 }

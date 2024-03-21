@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 public class Branch {
 
     private String name;
-    private Commit commit;
+    private CommitResponse commitResponse;
     @JsonProperty("protected")
     private boolean branchProtected;
 

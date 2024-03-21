@@ -8,10 +8,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Commit {
+public class CommitResponse {
 
-        private String url;
-        private CommitAuthor author;
-        private String message;
 
+    private String sha;
+    private Commit commit;
 }
