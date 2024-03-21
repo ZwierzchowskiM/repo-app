@@ -34,7 +34,7 @@ public class GitHubServiceImpl implements GithubService {
         this.webClient = webClient;
     }
 
-    public Set<RepositoryDTO> getRepositories(String username) {
+    public Set<RepositoryDTO> getRepositoriesDetails(String username) {
 
         Flux<Repository> repositories = getAllRepositories(username);
 
@@ -54,6 +54,7 @@ public class GitHubServiceImpl implements GithubService {
                 .onStatus(httpStatus -> !httpStatus.is2xxSuccessful(),
                         clientResponse -> handleResponse(clientResponse.statusCode()))
                 .bodyToFlux(Repository.class)
+                .log()
                 .onErrorResume(Exception.class, e -> Flux.empty());
 
         return repositories;
@@ -91,7 +92,10 @@ public class GitHubServiceImpl implements GithubService {
 
         Set<CommitDTO> commitDTOS =
                 commits
-                        .map(commitResponse -> new CommitDTO(commitResponse.getSha(), commitResponse.getNodeId()))
+                        .map(commitResponse -> new CommitDTO(
+                                commitResponse.getSha(), commitResponse.getCommit().getMessage(),
+                                commitResponse.getCommit().getAuthor().getName(),
+                                commitResponse.getCommit().getAuthor().getDate()))
                         .collect(Collectors.toSet()).block();
 
         return commitDTOS;
@@ -100,11 +104,11 @@ public class GitHubServiceImpl implements GithubService {
 
         Flux<CommitResponse> commits = webClient.get()
                 .uri(gitHubCommitsApiUrl,username,repositoryName)
-//                .uri(test)
                 .retrieve()
                 .onStatus(httpStatus -> !httpStatus.is2xxSuccessful(),
                         clientResponse -> handleResponse(clientResponse.statusCode()))
                 .bodyToFlux(CommitResponse.class)
+                .log()
                 .onErrorResume(Exception.class, e -> Flux.empty());
 
         return commits;
@@ -115,7 +119,7 @@ public class GitHubServiceImpl implements GithubService {
         if (statusCode.is2xxSuccessful()) {
             return null;
         } else if (statusCode.is4xxClientError()) {
-            return Mono.error(new RuntimeException("Employee not found"));
+            return Mono.error(new RuntimeException("Client Error"));
         } else if (statusCode.is5xxServerError()) {
             return Mono.error(new RuntimeException("Server error"));
         } else {

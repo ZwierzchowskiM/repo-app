@@ -27,7 +27,7 @@ public class GitHubController {
     @GetMapping(value = "/repositories", headers = "Accept=application/json")
     public ResponseEntity<Set<RepositoryDTO>> getUserRepositories(@RequestParam String username) {
 
-        Set<RepositoryDTO> allRepositories = gitHubService.getRepositories(username);
+        Set<RepositoryDTO> allRepositories = gitHubService.getRepositoriesDetails(username);
 
         return ResponseEntity.ok(allRepositories);
     }

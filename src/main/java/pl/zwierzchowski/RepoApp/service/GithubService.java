@@ -12,7 +12,7 @@ import java.util.Set;
 
 public interface GithubService {
 
-    Set<RepositoryDTO> getRepositories(String username);
+    Set<RepositoryDTO> getRepositoriesDetails(String username);
     Flux<Repository> getAllRepositories(String username);
     Set<BranchDTO> getRepositoryBranchesDetails(String username, String repoName);
     Flux<Branch> getRepositoryBranches(String username, String repoName);

@@ -1,4 +1,6 @@
 package pl.zwierzchowski.RepoApp.domain.dto;
 
-public record CommitDTO(String sha,String nodeId) {
+import java.util.Date;
+
+public record CommitDTO(String sha, String message, String authorLogin, String date) {
 }
