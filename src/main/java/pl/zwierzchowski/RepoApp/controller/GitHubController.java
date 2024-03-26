@@ -15,7 +15,7 @@ import java.util.Set;
 
 
 @RestController
-@RequestMapping("/github")
+@RequestMapping("${api.path}/github")
 public class GitHubController {
 
     private GithubService gitHubService;
