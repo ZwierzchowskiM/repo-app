@@ -8,16 +8,16 @@ import pl.zwierzchowski.RepoApp.domain.dto.CommitDTO;
 import pl.zwierzchowski.RepoApp.domain.dto.RepositoryDTO;
 import reactor.core.publisher.Flux;
 
+import java.net.URI;
 import java.util.Set;
 
 public interface GithubService {
 
     Set<RepositoryDTO> getRepositoriesDetails(String username);
-    Flux<Repository> getAllRepositories(String username);
     Set<BranchDTO> getRepositoryBranchesDetails(String username, String repoName);
-    Flux<Branch> getRepositoryBranches(String username, String repoName);
     Set<CommitDTO> getRepositoryCommitDetails(String username, String repoName);
-    Flux<CommitResponse> getRepositoryCommits(String username, String repoName);
+    public <T> Flux<T> getResponse(String username, Class<T> responseType, String url);
+    public <T> Flux<T> fetchResponse (URI uri, Class<T> responseType);
 
 
 }

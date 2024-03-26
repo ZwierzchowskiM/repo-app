@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 import pl.zwierzchowski.RepoApp.domain.Branch;
 import pl.zwierzchowski.RepoApp.domain.CommitResponse;
 import pl.zwierzchowski.RepoApp.domain.Repository;
@@ -13,6 +14,7 @@ import pl.zwierzchowski.RepoApp.domain.dto.RepositoryDTO;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,8 +28,6 @@ public class GitHubServiceImpl implements GithubService {
     @Value("${github.commits.api.url:https://api.github.com/repos/{username}/{reponame}/commits}")
     private String gitHubCommitsApiUrl;
 
-    String test = "https://api.github.com/repos/ZwierzchowskiM/repo-app/commits";
-
     WebClient webClient;
 
     public GitHubServiceImpl(WebClient webClient) {
@@ -36,7 +36,7 @@ public class GitHubServiceImpl implements GithubService {
 
     public Set<RepositoryDTO> getRepositoriesDetails(String username) {
 
-        Flux<Repository> repositories = getAllRepositories(username);
+        Flux<Repository> repositories = getResponse(username, Repository.class, gitHubReposApiUrl);
 
         Set<RepositoryDTO> repositoryDTOS =
                 repositories
@@ -46,23 +46,10 @@ public class GitHubServiceImpl implements GithubService {
         return repositoryDTOS;
     }
 
-    public Flux<Repository> getAllRepositories(String username) {
-
-        Flux<Repository> repositories = webClient.get()
-                .uri(gitHubReposApiUrl,username)
-                .retrieve()
-                .onStatus(httpStatus -> !httpStatus.is2xxSuccessful(),
-                        clientResponse -> handleResponse(clientResponse.statusCode()))
-                .bodyToFlux(Repository.class)
-                .log()
-                .onErrorResume(Exception.class, e -> Flux.empty());
-
-        return repositories;
-    }
 
     public Set<BranchDTO> getRepositoryBranchesDetails(String username,String repositoryName) {
 
-        Flux<Branch> branches = getRepositoryBranches(username, repositoryName);
+        Flux<Branch> branches = getResponse(username, repositoryName, Branch.class, gitHubBranchesApiUrl );
 
         Set<BranchDTO> branchDTOS =
                 branches
@@ -72,23 +59,9 @@ public class GitHubServiceImpl implements GithubService {
         return branchDTOS;
     }
 
-
-    public Flux<Branch> getRepositoryBranches(String username,String repositoryName) {
-
-        Flux<Branch> branches = webClient.get()
-                .uri(gitHubBranchesApiUrl,username,repositoryName)
-                .retrieve()
-                .onStatus(httpStatus -> !httpStatus.is2xxSuccessful(),
-                        clientResponse -> handleResponse(clientResponse.statusCode()))
-                .bodyToFlux(Branch.class)
-                .onErrorResume(Exception.class, e -> Flux.empty());
-
-        return branches;
-    }
-
     public Set<CommitDTO> getRepositoryCommitDetails(String username, String repositoryName) {
 
-        Flux<CommitResponse> commits = getRepositoryCommits(username, repositoryName);
+        Flux<CommitResponse> commits = getResponse(username, repositoryName, CommitResponse.class,gitHubCommitsApiUrl);
 
         Set<CommitDTO> commitDTOS =
                 commits
@@ -100,19 +73,38 @@ public class GitHubServiceImpl implements GithubService {
 
         return commitDTOS;
     }
-    public Flux<CommitResponse> getRepositoryCommits(String username, String repositoryName) {
 
-        Flux<CommitResponse> commits = webClient.get()
-                .uri(gitHubCommitsApiUrl,username,repositoryName)
+    public <T> Flux<T> getResponse(String username, Class<T> responseType, String url) {
+        URI uri = UriComponentsBuilder.fromUriString(url)
+                .buildAndExpand(username)
+                .toUri();
+
+        return fetchResponse(uri, responseType);
+    }
+
+    public <T> Flux<T> getResponse(String username, String repositoryName, Class<T> responseType, String url) {
+        URI uri = UriComponentsBuilder.fromUriString(url)
+                .buildAndExpand(username, repositoryName)
+                .toUri();
+
+        return fetchResponse(uri, responseType);
+    }
+
+
+    public <T> Flux<T> fetchResponse (URI uri, Class<T> responseType) {
+
+        Flux<T> response = webClient.get()
+                .uri(uri)
                 .retrieve()
                 .onStatus(httpStatus -> !httpStatus.is2xxSuccessful(),
                         clientResponse -> handleResponse(clientResponse.statusCode()))
-                .bodyToFlux(CommitResponse.class)
+                .bodyToFlux(responseType)
                 .log()
                 .onErrorResume(Exception.class, e -> Flux.empty());
 
-        return commits;
+        return response;
     }
+
 
     private Mono<? extends Throwable> handleResponse(HttpStatusCode statusCode) {
 
