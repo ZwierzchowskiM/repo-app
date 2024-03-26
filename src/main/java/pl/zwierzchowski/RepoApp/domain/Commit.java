@@ -1,6 +1,5 @@
 package pl.zwierzchowski.RepoApp.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,5 +12,4 @@ public class Commit {
         private String url;
         private CommitAuthor author;
         private String message;
-
 }

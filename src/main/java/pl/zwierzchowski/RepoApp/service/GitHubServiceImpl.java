@@ -13,7 +13,6 @@ import pl.zwierzchowski.RepoApp.domain.dto.CommitDTO;
 import pl.zwierzchowski.RepoApp.domain.dto.RepositoryDTO;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -46,10 +45,9 @@ public class GitHubServiceImpl implements GithubService {
         return repositoryDTOS;
     }
 
+    public Set<BranchDTO> getRepositoryBranchesDetails(String username, String repositoryName) {
 
-    public Set<BranchDTO> getRepositoryBranchesDetails(String username,String repositoryName) {
-
-        Flux<Branch> branches = getResponse(username, repositoryName, Branch.class, gitHubBranchesApiUrl );
+        Flux<Branch> branches = getResponse(username, repositoryName, Branch.class, gitHubBranchesApiUrl);
 
         Set<BranchDTO> branchDTOS =
                 branches
@@ -61,7 +59,7 @@ public class GitHubServiceImpl implements GithubService {
 
     public Set<CommitDTO> getRepositoryCommitDetails(String username, String repositoryName) {
 
-        Flux<CommitResponse> commits = getResponse(username, repositoryName, CommitResponse.class,gitHubCommitsApiUrl);
+        Flux<CommitResponse> commits = getResponse(username, repositoryName, CommitResponse.class, gitHubCommitsApiUrl);
 
         Set<CommitDTO> commitDTOS =
                 commits
@@ -90,8 +88,7 @@ public class GitHubServiceImpl implements GithubService {
         return fetchResponse(uri, responseType);
     }
 
-
-    public <T> Flux<T> fetchResponse (URI uri, Class<T> responseType) {
+    public <T> Flux<T> fetchResponse(URI uri, Class<T> responseType) {
 
         Flux<T> response = webClient.get()
                 .uri(uri)
@@ -104,7 +101,6 @@ public class GitHubServiceImpl implements GithubService {
 
         return response;
     }
-
 
     private Mono<? extends Throwable> handleResponse(HttpStatusCode statusCode) {
 

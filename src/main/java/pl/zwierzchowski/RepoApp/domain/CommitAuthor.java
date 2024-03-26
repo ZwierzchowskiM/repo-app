@@ -13,5 +13,4 @@ public class CommitAuthor {
     private String name;
     private String email;
     private String date;
-
 }

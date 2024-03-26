@@ -14,5 +14,4 @@ public class Branch {
     private CommitResponse commitResponse;
     @JsonProperty("protected")
     private boolean branchProtected;
-
 }

@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CommitResponse {
 
-
     private String sha;
     private Commit commit;
 }

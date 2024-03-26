@@ -10,9 +10,7 @@ import pl.zwierzchowski.RepoApp.domain.dto.BranchDTO;
 import pl.zwierzchowski.RepoApp.domain.dto.CommitDTO;
 import pl.zwierzchowski.RepoApp.domain.dto.RepositoryDTO;
 import pl.zwierzchowski.RepoApp.service.GithubService;
-
 import java.util.Set;
-
 
 @RestController
 @RequestMapping("${api.path}/github")
@@ -47,7 +45,4 @@ public class GitHubController {
 
         return ResponseEntity.ok(repositoryCommits);
     }
-
-
-
 }
