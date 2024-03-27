@@ -13,6 +13,7 @@ import pl.zwierzchowski.RepoApp.domain.Repository;
 import pl.zwierzchowski.RepoApp.domain.dto.BranchDTO;
 import pl.zwierzchowski.RepoApp.domain.dto.CommitDTO;
 import pl.zwierzchowski.RepoApp.domain.dto.RepositoryDTO;
+import pl.zwierzchowski.RepoApp.exception.UserNotFoundException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import java.net.URI;
@@ -109,7 +110,7 @@ public class GitHubServiceImpl implements GithubService {
                 .onStatus(httpStatus -> !httpStatus.is2xxSuccessful(),
                         clientResponse -> handleResponse(clientResponse.statusCode()))
                 .bodyToFlux(responseType)
-                .log()
+//                .log()
                 .onErrorResume(Exception.class, e -> Flux.empty());
 
         return response;
@@ -122,7 +123,7 @@ public class GitHubServiceImpl implements GithubService {
             return null;
         } else if (statusCode.is4xxClientError()) {
             logger.error("Request failed. Received status code: {}", statusCode);
-            return Mono.error(new RuntimeException("Client Error"));
+            return Mono.error(new RuntimeException("User not found on GitHub"));
         } else if (statusCode.is5xxServerError()) {
             logger.error("Request failed. Received status code: {}", statusCode);
             return Mono.error(new RuntimeException("Server error"));
