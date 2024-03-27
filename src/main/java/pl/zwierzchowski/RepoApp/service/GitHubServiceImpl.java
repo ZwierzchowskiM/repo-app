@@ -1,5 +1,7 @@
 package pl.zwierzchowski.RepoApp.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,8 @@ import java.util.stream.Collectors;
 @Service
 public class GitHubServiceImpl implements GithubService {
 
+    private static final Logger logger = LoggerFactory.getLogger(GitHubServiceImpl.class);
+
     @Value("${github.repos.api.url:https://api.github.com/users/{username}/repos}")
     private String gitHubReposApiUrl;
     @Value("${github.branches.api.url:https://api.github.com/repos/{username}/{reponame}/branches}")
@@ -35,6 +39,7 @@ public class GitHubServiceImpl implements GithubService {
 
     public Set<RepositoryDTO> getRepositoriesDetails(String username) {
 
+        logger.info("Fetching repositories details for user: {}", username);
         Flux<Repository> repositories = getResponse(username, Repository.class, gitHubReposApiUrl);
 
         Set<RepositoryDTO> repositoryDTOS =
@@ -42,11 +47,13 @@ public class GitHubServiceImpl implements GithubService {
                         .map(repository -> new RepositoryDTO(repository.getName(), repository.getUrl()))
                         .collect(Collectors.toSet()).block();
 
+        logger.info("Successfully fetched repositories details for user: {}", username);
         return repositoryDTOS;
     }
 
     public Set<BranchDTO> getRepositoryBranchesDetails(String username, String repositoryName) {
 
+        logger.info("Fetching branches for repository: {}/{}", username, repositoryName);
         Flux<Branch> branches = getResponse(username, repositoryName, Branch.class, gitHubBranchesApiUrl);
 
         Set<BranchDTO> branchDTOS =
@@ -59,6 +66,7 @@ public class GitHubServiceImpl implements GithubService {
 
     public Set<CommitDTO> getRepositoryCommitDetails(String username, String repositoryName) {
 
+        logger.info("Fetching commits for repository: {}/{}", username, repositoryName);
         Flux<CommitResponse> commits = getResponse(username, repositoryName, CommitResponse.class, gitHubCommitsApiUrl);
 
         Set<CommitDTO> commitDTOS =
@@ -73,6 +81,8 @@ public class GitHubServiceImpl implements GithubService {
     }
 
     public <T> Flux<T> getResponse(String username, Class<T> responseType, String url) {
+
+        logger.info("Building URI for username: {} ", username);
         URI uri = UriComponentsBuilder.fromUriString(url)
                 .buildAndExpand(username)
                 .toUri();
@@ -81,6 +91,8 @@ public class GitHubServiceImpl implements GithubService {
     }
 
     public <T> Flux<T> getResponse(String username, String repositoryName, Class<T> responseType, String url) {
+
+        logger.info("Building URI for username: {} and repository: {}", username, repositoryName);
         URI uri = UriComponentsBuilder.fromUriString(url)
                 .buildAndExpand(username, repositoryName)
                 .toUri();
@@ -90,6 +102,7 @@ public class GitHubServiceImpl implements GithubService {
 
     public <T> Flux<T> fetchResponse(URI uri, Class<T> responseType) {
 
+        logger.info("Executing GET request to URI: {}", uri);
         Flux<T> response = webClient.get()
                 .uri(uri)
                 .retrieve()
@@ -105,12 +118,16 @@ public class GitHubServiceImpl implements GithubService {
     private Mono<? extends Throwable> handleResponse(HttpStatusCode statusCode) {
 
         if (statusCode.is2xxSuccessful()) {
+            logger.info("Request successful ");
             return null;
         } else if (statusCode.is4xxClientError()) {
+            logger.error("Request failed. Received status code: {}", statusCode);
             return Mono.error(new RuntimeException("Client Error"));
         } else if (statusCode.is5xxServerError()) {
+            logger.error("Request failed. Received status code: {}", statusCode);
             return Mono.error(new RuntimeException("Server error"));
         } else {
+            logger.error("Unexpected status code. Received status code: {}", statusCode);
             return Mono.error(new RuntimeException("Unexpected error"));
         }
     }
