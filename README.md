@@ -105,4 +105,23 @@ GET http://localhost:8080/github/commits?username=ZwierzchowskiM&repositoryName=
 Swagger UI is available at `http://localhost:8080/swagger-ui/index.html#/`.
 
 
+## How to run
 
+To get this project up and running, navigate to root directory of an application and execute following commands:
+
+* Create a jar file.
+```
+$ mvn package
+```
+
+* Then build docker image using already built jar file.
+
+```
+$ docker build -t repoapp .
+```
+
+* Run whole setup
+
+```
+$ docker run -p 8080:8080 repoapp
+```
