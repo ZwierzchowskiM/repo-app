@@ -8,6 +8,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import pl.zwierzchowski.RepoApp.domain.dto.BranchDTO;
 import pl.zwierzchowski.RepoApp.domain.dto.RepositoryDTO;
 import pl.zwierzchowski.RepoApp.service.GitHubServiceImpl;
 
@@ -84,8 +85,47 @@ class GitHubControllerTest {
     }
 
     @Test
-    void getRepositoryBranches() {
+    void givenValidUsernameRepositoryName_whenGetRepositoryBranches_thenReturnsRepositoryBranches() throws Exception {
+        //given
+        BranchDTO branchDTO1 = new BranchDTO("branch1");
+        BranchDTO branchDTO2 = new BranchDTO("branch2");
+        Set<BranchDTO> branchDTOS = Set.of(branchDTO1, branchDTO2);
+        String username = "testUsername";
+        String repositoryName = "testRepository";
+
+        //when
+        when(gitHubService.getRepositoryBranchesDetails(username,repositoryName)).thenReturn(branchDTOS);
+
+        //then
+        mockMvc.perform(get(apiPath + "/github/branches")
+                        .param("username", username)
+                        .param("repositoryName",repositoryName))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(2)));
+
     }
+
+    @Test
+    void givenEmptyUsername_whenGetRepositoryBranches_thenReturnsEmptySet() throws Exception {
+        //given
+        String username = "";
+        String repositoryName = "testRepository";
+
+//        when
+        when(gitHubService.getRepositoryBranchesDetails(username,repositoryName)).thenReturn(Collections.emptySet());
+
+        //then
+        mockMvc.perform(get(apiPath + "/github/branches")
+                        .param("username", username)
+                        .param("repositoryName",repositoryName))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().is(200))
+                .andExpect(MockMvcResultMatchers.jsonPath("$").isEmpty());
+
+    }
+
 
     @Test
     void getRepositoryCommits() {
