@@ -9,6 +9,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import pl.zwierzchowski.RepoApp.domain.dto.BranchDTO;
+import pl.zwierzchowski.RepoApp.domain.dto.CommitDTO;
 import pl.zwierzchowski.RepoApp.domain.dto.RepositoryDTO;
 import pl.zwierzchowski.RepoApp.service.GitHubServiceImpl;
 
@@ -128,6 +129,26 @@ class GitHubControllerTest {
 
 
     @Test
-    void getRepositoryCommits() {
+    void givenValidUsernameRepositoryName_whenGetRepositoryCommits_thenReturnsRepositoryCommits() throws Exception {
+        //given
+        CommitDTO commitDTO1 = new CommitDTO("1234","cmomit1","testUser","11-04-2024");
+        CommitDTO commitDTO2 = new CommitDTO("1234","cmomit2","testUser","11-04-2024");
+        CommitDTO commitDTO3 = new CommitDTO("1234","cmomit3","testUser","11-04-2024");
+        Set<CommitDTO> commitDTOS = Set.of(commitDTO1, commitDTO2,commitDTO3);
+        String username = "testUsername";
+        String repositoryName = "testRepository";
+
+        //when
+        when(gitHubService.getRepositoryCommitDetails(username,repositoryName)).thenReturn(commitDTOS);
+
+        //then
+        mockMvc.perform(get(apiPath + "/github/commits")
+                        .param("username", username)
+                        .param("repositoryName",repositoryName))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(3)));
+
     }
 }
